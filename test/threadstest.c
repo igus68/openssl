@@ -183,13 +183,16 @@ static void rwreader_fn(int *iterations)
         CRYPTO_atomic_add(&rwwriter2_done, 0, &lw2, atomiclock);
 
         count++;
-        if (rwwriter_ptr != NULL && old > *rwwriter_ptr) {
-            TEST_info("rwwriter pointer went backwards\n");
-            rw_torture_result = 0;
+        if (rwwriter_ptr != NULL) {
+            if (old > *rwwriter_ptr) {
+                TEST_info("rwwriter pointer went backwards! %d : %d\n",
+                          old, *rwwriter_ptr);
+                rw_torture_result = 0;
+            }
+            old = *rwwriter_ptr;
         }
         if (CRYPTO_THREAD_unlock(rwtorturelock) == 0)
             abort();
-        *iterations = count;
         if (rw_torture_result == 0) {
             *iterations = count;
             return;
@@ -321,7 +324,8 @@ static void writer_fn(int id, int *iterations)
     t1 = ossl_time_now();
 
     for (count = 0; ; count++) {
-        new = CRYPTO_zalloc(sizeof(uint64_t), NULL, 0);
+        new = CRYPTO_malloc(sizeof(uint64_t), NULL, 0);
+        *new = (uint64_t)0xBAD;
         if (contention == 0)
             OSSL_sleep(1000);
         ossl_rcu_write_lock(rcu_lock);
@@ -387,6 +391,8 @@ static void reader_fn(int *iterations)
 
         if (oldval > val) {
             TEST_info("rcu torture value went backwards! %llu : %llu", (unsigned long long)oldval, (unsigned long long)val);
+            if (valp == NULL)
+                TEST_info("ossl_rcu_deref did return NULL!");
             rcu_torture_result = 0;
         }
         oldval = val; /* just try to deref the pointer */
@@ -1358,6 +1364,42 @@ static int test_x509_store(void)
     return ret;
 }
 
+/* Test using OBJ_create in multiple threads */
+static void test_obj_create_worker(void)
+{
+    int i, nid, nid2;
+    time_t now;
+    char name[40];
+
+    for (i = 0; i < 4; i++) {
+        now = time(NULL);
+        sprintf(name, "Time in Seconds = %ld", (long) now);
+        while (now == time(NULL))
+            /* no-op */;
+        nid = OBJ_create(NULL, NULL, name);
+        nid2 = OBJ_ln2nid(name);
+        if (nid != NID_undef) {
+            if (nid2 != nid) {
+                TEST_info("oops: name='%s' nid=%d nid2=%d", name, nid, nid2);
+                multi_set_success(0);
+                break;
+            }
+        } else {
+            if (nid2 == NID_undef) {
+                TEST_info("oops: name='%s' nid=%d nid2=%d", name, nid, nid2);
+                multi_set_success(0);
+                break;
+            }
+        }
+    }
+}
+
+static int test_obj_stress(void)
+{
+    return thread_run_test(&test_obj_create_worker, MAXIMUM_THREADS,
+                           &test_obj_create_worker, 0, NULL);
+}
+
 typedef enum OPTION_choice {
     OPT_ERR = -1,
     OPT_EOF = 0,
@@ -1447,6 +1489,7 @@ int setup_tests(void)
 #endif
     ADD_TEST(test_pem_read);
     ADD_TEST(test_x509_store);
+    ADD_TEST(test_obj_stress);
     return 1;
 }
 

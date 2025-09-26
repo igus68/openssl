@@ -177,7 +177,7 @@ static int rsakem_decapsulate_init(void *vprsactx, void *vrsa,
 }
 
 {- produce_param_decoder('rsakem_get_ctx_params',
-                         (['KEM_PARAM_FIPS_APPROVED_INDICATOR', 'ind', 'int', 'fips'],
+                         (['OSSL_KEM_PARAM_FIPS_APPROVED_INDICATOR', 'ind', 'int', 'fips'],
                          )); -}
 
 static int rsakem_get_ctx_params(void *vprsactx, OSSL_PARAM *params)
@@ -200,8 +200,8 @@ static const OSSL_PARAM *rsakem_gettable_ctx_params(ossl_unused void *vprsactx,
 }
 
 {- produce_param_decoder('rsakem_set_ctx_params',
-                         (['KEM_PARAM_OPERATION',       'op',    'utf8_string'],
-                          ['KEM_PARAM_FIPS_KEY_CHECK',  'ind_k', 'int', 'fips'],
+                         (['OSSL_KEM_PARAM_OPERATION',       'op',    'utf8_string'],
+                          ['OSSL_KEM_PARAM_FIPS_KEY_CHECK',  'ind_k', 'int', 'fips'],
                          )); -}
 
 static int rsakem_set_ctx_params(void *vprsactx, const OSSL_PARAM params[])
@@ -302,7 +302,7 @@ static int rsasve_generate(PROV_RSA_CTX *prsactx,
     /*
      * If outlen is specified, then it must report the length
      * of the out buffer on input so that we can confirm
-     * its size is sufficent for encapsulation
+     * its size is sufficient for encapsulation
      */
     if (outlen != NULL && *outlen < nlen) {
         ERR_raise(ERR_LIB_PROV, PROV_R_INVALID_OUTPUT_LENGTH);
@@ -334,7 +334,7 @@ static int rsasve_generate(PROV_RSA_CTX *prsactx,
 /**
  * rsasve_recover - Recovers a secret value from ciphertext using an RSA
  * private key.  Once, recovered, the secret value is considered to be a
- * shared secret.  Algorithm is preformed as per
+ * shared secret.  Algorithm is performed as per
  * NIST SP 800-56B Rev 2
  * 7.2.1.3 RSASVE Recovery Operation (RSASVE.RECOVER).
  *

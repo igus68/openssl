@@ -43,12 +43,9 @@ changes:
 
   * Added NIST security categories for PKEY objects.
 
-  * Added support for EVP_SKEY opaque symmetric key objects to the key
+  * Added support for `EVP_SKEY` opaque symmetric key objects to the key
     derivation and key exchange provider methods. Added `EVP_KDF_CTX_set_SKEY()`,
     `EVP_KDF_derive_SKEY()`, and `EVP_PKEY_derive_SKEY()` functions.
-
-  * The FIPS provider now performs a PCT on key import for RSA, EC and ECX.
-    This is mandated by FIPS 140-3 IG 10.3.A additional comment 1.
 
   * Added LMS signature verification support as per [SP 800-208]. This
     support is present in both the FIPS and default providers.
@@ -319,7 +316,7 @@ This release adds the following new features:
   * Added X509_STORE_get1_objects to avoid issues with the existing
     X509_STORE_get0_objects API in multi-threaded applications.
 
-  * Support for using certificate profiles and extened delayed delivery in CMP
+  * Support for using certificate profiles and extended delayed delivery in CMP
 
 This release incorporates the following potentially significant or incompatible
 changes:
