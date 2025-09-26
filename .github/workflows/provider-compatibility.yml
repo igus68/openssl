@@ -16,8 +16,9 @@ name: Provider compatibility across versions
 # Use the `extended tests` label to run provider compatibility checks
 # on PRs.
 on:
-  schedule:
-    - cron: '10 02 * * *'
+  push:
+#  schedule:
+#    - cron: '10 02 * * *'
   workflow_dispatch:
 
 permissions:
