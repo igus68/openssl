@@ -8,8 +8,9 @@
 name: Coverage
 
 on:
-  schedule:
-    - cron: '15 02 * * *'
+  push:
+#  schedule:
+#    - cron: '15 02 * * *'
   workflow_dispatch:
     inputs:
       branch:

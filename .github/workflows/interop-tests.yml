@@ -5,8 +5,9 @@
 # to that directory
 name: Interoperability tests with GnuTLS and NSS
 on:
-  schedule:
-    - cron: '55 02 * * *'
+  push:
+#  schedule:
+#    - cron: '55 02 * * *'
   workflow_dispatch:
 
 jobs:
