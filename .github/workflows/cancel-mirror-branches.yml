@@ -1,0 +1,52 @@
+# .github/workflows/cancel-mirror-branches.yml
+name: "Guard: cancel CI on mirror branches"
+
+on:
+  workflow_run:
+    # перечисли все ваши workflows по именам; см. команду ниже
+    workflows:
+      - Backports CI
+      - Build openssl interop container from master
+      - GitHub CI
+      - Compiler Zoo CI
+      - Coverage
+      - Cross Compile
+      - Trigger docs.openssl.org deployment
+      - FIPS Check and ABIDIFF
+      - FIPS and ABI Changed Label
+      - Fuzz-checker CI
+      - Interoperability tests with GnuTLS and NSS
+      - CIFuzz
+      - Make release
+      - OS Zoo CI
+      - Perl-minimal-checker CI
+      - Provider compatibility for PRs
+      - Provider compatibility across versions
+      - Cross Compile for RISC-V Extensions
+      - Run-checker CI
+      - Run-checker daily
+      - Run-checker merge
+      - Run openssl quic interop testing
+      - Static Analysis On Prem
+      - Static Analysis
+      - Coding style validation
+      - Windows GitHub CI
+      - Windows Compression GitHub CI
+    branches: [ master, openssl-3.5 ]
+    types: [requested]   # срабатывает сразу после постановки в очередь
+
+permissions:
+  actions: write         # нужно право отменять чужие ранны
+
+jobs:
+  cancel:
+    if: ${{ github.event.workflow_run.event == 'push' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel run
+        run: |
+          curl -sS -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "${{ github.event.workflow_run.cancel_url }}"
+
