@@ -8,7 +8,9 @@
 name: Run-checker merge
 # Jobs run per merge to master
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 permissions:
   contents: read
 

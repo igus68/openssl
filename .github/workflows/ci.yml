@@ -7,7 +7,10 @@
 
 name: GitHub CI
 
-on: [pull_request, push]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 # for some reason, this does not work:
 # variables:

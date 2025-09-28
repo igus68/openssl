@@ -7,7 +7,9 @@
 
 name: Fuzz-checker CI
 
-on: [push]
+on:
+  push:
+  workflow_dispatch:
 
 permissions:
   contents: read
