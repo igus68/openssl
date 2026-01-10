@@ -20,6 +20,7 @@
 static X509 *cert = NULL;
 static EVP_PKEY *privkey = NULL;
 static char *derin = NULL;
+static char *badderin = NULL;
 
 static int test_encrypt_decrypt(const EVP_CIPHER *cipher)
 {
@@ -479,6 +480,38 @@ end:
     return ret;
 }
 
+static int test_cms_aesgcm_iv_too_long(void)
+{
+    int ret = 0;
+    BIO *cmsbio = NULL, *out = NULL;
+    CMS_ContentInfo *badcms = NULL;
+    unsigned long err = 0;
+
+    if (!TEST_ptr(cmsbio = BIO_new_file(badderin, "r")))
+        goto end;
+
+    if (!TEST_ptr(badcms = d2i_CMS_bio(cmsbio, NULL)))
+        goto end;
+
+    /* Must fail cleanly (no crash) */
+    if (!TEST_false(CMS_decrypt(badcms, privkey, cert, NULL, out, 0)))
+        goto end;
+    err = ERR_peek_last_error();
+    if (!TEST_ulong_ne(err, 0))
+        goto end;
+    if (!TEST_int_eq(ERR_GET_LIB(err), ERR_LIB_CMS))
+        goto end;
+    if (!TEST_int_eq(ERR_GET_REASON(err), CMS_R_CIPHER_PARAMETER_INITIALISATION_ERROR))
+        goto end;
+
+    ret = 1;
+end:
+    CMS_ContentInfo_free(badcms);
+    BIO_free(cmsbio);
+    BIO_free(out);
+    return ret;
+}
+
 OPT_TEST_DECLARE_USAGE("certfile privkeyfile derfile\n")
 
 int setup_tests(void)
@@ -493,7 +526,8 @@ int setup_tests(void)
 
     if (!TEST_ptr(certin = test_get_argument(0))
         || !TEST_ptr(privkeyin = test_get_argument(1))
-        || !TEST_ptr(derin = test_get_argument(2)))
+        || !TEST_ptr(derin = test_get_argument(2))
+        || !TEST_ptr(badderin = test_get_argument(3)))
         return 0;
 
     certbio = BIO_new_file(certin, "r");
@@ -529,6 +563,7 @@ int setup_tests(void)
     ADD_TEST(test_encrypted_data);
     ADD_TEST(test_encrypted_data_aead);
     ADD_ALL_TESTS(test_d2i_CMS_decode, 2);
+    ADD_TEST(test_cms_aesgcm_iv_too_long);
     return 1;
 }
 
