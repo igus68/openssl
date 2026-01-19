@@ -50,8 +50,10 @@ typedef enum {
 typedef enum {
     /* No handshake in progress */
     MSG_FLOW_UNINITED,
-    /* A permanent error with this connection */
-    MSG_FLOW_ERROR,
+    /* A permanent protocol error with this connection */
+    MSG_FLOW_PROTOCOL_ERROR,
+    /* A permanent system error with this connection */
+    MSG_FLOW_SYSTEM_ERROR,
     /* We are reading messages */
     MSG_FLOW_READING,
     /* We are writing messages */
@@ -141,10 +143,10 @@ __owur int ossl_statem_connect(SSL *s);
 OSSL_HANDSHAKE_STATE ossl_statem_get_state(SSL_CONNECTION *s);
 void ossl_statem_clear(SSL_CONNECTION *s);
 void ossl_statem_set_renegotiate(SSL_CONNECTION *s);
-void ossl_statem_send_fatal(SSL_CONNECTION *s, int al);
+void ossl_statem_send_fatal(SSL_CONNECTION *s, int al, int err_type);
 void ossl_statem_fatal(SSL_CONNECTION *s, int al, int reason,
     const char *fmt, ...);
-#define SSLfatal_alert(s, al) ossl_statem_send_fatal((s), (al))
+#define SSLfatal_alert(s, al, et) ossl_statem_send_fatal((s), (al), (et))
 #define SSLfatal(s, al, r) SSLfatal_data((s), (al), (r), NULL)
 #define SSLfatal_data                                            \
     (ERR_new(),                                                  \

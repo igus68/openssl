@@ -4221,7 +4221,7 @@ static CON_FUNC_RETURN construct_stateless_ticket(SSL_CONNECTION *s,
 
         if (cipher == NULL) {
             /* Error is already recorded */
-            SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR);
+            SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR, 0);
             goto err;
         }
 

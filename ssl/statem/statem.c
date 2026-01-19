@@ -144,13 +144,20 @@ void ossl_statem_set_renegotiate(SSL_CONNECTION *s)
     s->statem.request_state = TLS_ST_SW_HELLO_REQ;
 }
 
-void ossl_statem_send_fatal(SSL_CONNECTION *s, int al)
+/*
+ * Set one of the fatal errors: MSG_FLOW_SYSTEM_ERROR if err_type == 0,
+ * MSG_FLOW_PROTOCOL_ERROR otherwise.
+ */
+void ossl_statem_send_fatal(SSL_CONNECTION *s, int al, int err_type)
 {
     /* We shouldn't call SSLfatal() twice. Once is enough */
-    if (s->statem.in_init && s->statem.state == MSG_FLOW_ERROR)
+    if (s->statem.in_init
+        && (s->statem.state == MSG_FLOW_PROTOCOL_ERROR
+            || s->statem.state == MSG_FLOW_SYSTEM_ERROR))
         return;
     ossl_statem_set_in_init(s, 1);
-    s->statem.state = MSG_FLOW_ERROR;
+    s->statem.state
+        = (err_type) ? MSG_FLOW_PROTOCOL_ERROR : MSG_FLOW_SYSTEM_ERROR;
     if (al != SSL_AD_NO_ALERT)
         ssl3_send_alert(s, SSL3_AL_FATAL, al);
 }
@@ -170,7 +177,7 @@ void ossl_statem_fatal(SSL_CONNECTION *s, int al, int reason,
     ERR_vset_error(ERR_LIB_SSL, reason, fmt, args);
     va_end(args);
 
-    ossl_statem_send_fatal(s, al);
+    ossl_statem_send_fatal(s, al, 1);
 }
 
 /*
@@ -181,7 +188,8 @@ void ossl_statem_fatal(SSL_CONNECTION *s, int al, int reason,
 #define check_fatal(s)                                               \
     do {                                                             \
         if (!ossl_assert((s)->statem.in_init                         \
-                && (s)->statem.state == MSG_FLOW_ERROR))             \
+                && ((s)->statem.state == MSG_FLOW_PROTOCOL_ERROR     \
+                    || (s)->statem.state == MSG_FLOW_SYSTEM_ERROR))) \
             SSLfatal(s, SSL_AD_INTERNAL_ERROR, SSL_R_MISSING_FATAL); \
     } while (0)
 
@@ -194,8 +202,10 @@ void ossl_statem_fatal(SSL_CONNECTION *s, int al, int reason,
  */
 int ossl_statem_in_error(const SSL_CONNECTION *s)
 {
-    if (s->statem.state == MSG_FLOW_ERROR)
-        return 1;
+    if (s->statem.state == MSG_FLOW_PROTOCOL_ERROR)
+        return MSG_FLOW_PROTOCOL_ERROR;
+    if (s->statem.state == MSG_FLOW_SYSTEM_ERROR)
+        return MSG_FLOW_SYSTEM_ERROR;
 
     return 0;
 }
@@ -343,10 +353,12 @@ static info_cb get_callback(SSL_CONNECTION *s)
  *
  * We may exit at any point due to an error or NBIO event. If an NBIO event
  * occurs then we restart at the point we left off when we are recalled.
- * MSG_FLOW_WRITING and MSG_FLOW_READING have sub-state machines associated with them.
+ * MSG_FLOW_WRITING and MSG_FLOW_READING have sub-state machines associated
+ * with them.
  *
- * In addition to the above there is also the MSG_FLOW_ERROR state. We can move
- * into that state at any point in the event that an irrecoverable error occurs.
+ * In addition to the above there is also the MSG_FLOW_PROTOCOL_ERROR or
+ * MSG_FLOW_SYSTEM_ERROR state. We can move into those states at any point
+ * in the event that an irrecoverable error occurs.
  *
  * Valid return values are:
  *   1: Success
@@ -362,7 +374,8 @@ static int state_machine(SSL_CONNECTION *s, int server)
     SSL *ssl = SSL_CONNECTION_GET_SSL(s);
     SSL *ussl = SSL_CONNECTION_GET_USER_SSL(s);
 
-    if (st->state == MSG_FLOW_ERROR) {
+    if (st->state == MSG_FLOW_PROTOCOL_ERROR
+            || st->state == MSG_FLOW_SYSTEM_ERROR) {
         /* Shouldn't have been called if we're already in the error state */
         return -1;
     }

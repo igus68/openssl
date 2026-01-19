@@ -280,7 +280,7 @@ int tls1_setup_key_block(SSL_CONNECTION *s)
             &mac_type, &mac_secret_size, &comp,
             s->ext.use_etm)) {
         /* Error is already recorded */
-        SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR);
+        SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR, 0);
         return 0;
     }
 

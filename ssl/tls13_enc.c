@@ -335,7 +335,7 @@ int tls13_setup_key_block(SSL_CONNECTION *s)
     if (!ssl_cipher_get_evp(SSL_CONNECTION_GET_CTX(s), s->session, &c, &hash,
             &mac_type, &mac_secret_size, NULL, 0)) {
         /* Error is already recorded */
-        SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR);
+        SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR, 0);
         return 0;
     }
 
@@ -561,14 +561,14 @@ int tls13_change_cipher_state(SSL_CONNECTION *s, int which)
              */
             if (!ssl_cipher_get_evp_cipher(sctx, sslcipher, &cipher)) {
                 /* Error is already recorded */
-                SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR);
+                SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR, 0);
                 goto err;
             }
 
             if (((EVP_CIPHER_flags(cipher) & EVP_CIPH_FLAG_AEAD_CIPHER) == 0)
                 && (!ssl_cipher_get_evp_md_mac(sctx, sslcipher, &mac_md,
                     &mac_pkey_type, NULL))) {
-                SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR);
+                SSLfatal_alert(s, SSL_AD_INTERNAL_ERROR, 0);
                 goto err;
             }
 

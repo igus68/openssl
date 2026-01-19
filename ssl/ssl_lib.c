@@ -31,6 +31,7 @@
 #include "internal/ktls.h"
 #include "internal/to_hex.h"
 #include "internal/ssl_unwrap.h"
+#include "internal/statem.h"
 #include "quic/quic_local.h"
 
 #ifndef OPENSSL_NO_SSLKEYLOG
@@ -4829,12 +4830,11 @@ int ossl_ssl_get_error(const SSL *s, int i, int check_err)
      * Make things return SSL_ERROR_SYSCALL when doing SSL_do_handshake etc,
      * where we do encode the error
      */
-    if (check_err && (l = ERR_peek_error()) != 0) {
-        if (ERR_GET_LIB(l) == ERR_LIB_SYS)
-            return SSL_ERROR_SYSCALL;
-        else
-            return SSL_ERROR_SSL;
-    }
+    reason = ossl_statem_in_error(sc);
+    if (reason == MSG_FLOW_PROTOCOL_ERROR)
+        return SSL_ERROR_SSL;
+    if (reason == MSG_FLOW_SYSTEM_ERROR)
+        return SSL_ERROR_SYSCALL;
 
 #ifndef OPENSSL_NO_QUIC
     if (!IS_QUIC(s))
