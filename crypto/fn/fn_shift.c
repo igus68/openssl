@@ -20,6 +20,11 @@
  */
 int OSSL_FN_lshift(OSSL_FN *r, const OSSL_FN *a, int n)
 {
+    if (ossl_unlikely(r == NULL || a == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     size_t i, nw;
     unsigned int lb, rb;
     const OSSL_FN_ULONG *ap = a->d;
@@ -66,6 +71,11 @@ int OSSL_FN_lshift(OSSL_FN *r, const OSSL_FN *a, int n)
 
 int OSSL_FN_lshift1(OSSL_FN *r, const OSSL_FN *a)
 {
+    if (ossl_unlikely(r == NULL || a == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     OSSL_FN_ULONG *rp = r->d;
     const OSSL_FN_ULONG *ap = a->d;
     OSSL_FN_ULONG t, c = 0;
@@ -97,6 +107,11 @@ int OSSL_FN_lshift1(OSSL_FN *r, const OSSL_FN *a)
  */
 int OSSL_FN_rshift(OSSL_FN *r, const OSSL_FN *a, int n)
 {
+    if (ossl_unlikely(r == NULL || a == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     size_t i, nw;
     unsigned int lb, rb;
     const OSSL_FN_ULONG *ap = a->d;
@@ -135,6 +150,11 @@ int OSSL_FN_rshift(OSSL_FN *r, const OSSL_FN *a, int n)
 
 int OSSL_FN_rshift1(OSSL_FN *r, const OSSL_FN *a)
 {
+    if (ossl_unlikely(r == NULL || a == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     OSSL_FN_ULONG *rp = r->d;
     const OSSL_FN_ULONG *ap = a->d;
     size_t rl = (size_t)r->dsize;
