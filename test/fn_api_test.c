@@ -5619,6 +5619,125 @@ err:
     return ret;
 }
 
+/*
+ * Smoke test: every NULL-tolerant OSSL_FN_ function must reject a NULL pointer
+ * argument gracefully rather than dereference it.  We call each with NULL for
+ * all pointer parameters (and benign scalars) and only care that the process
+ * does not crash; return values are deliberately ignored (but consumed, as
+ * many of these are __owur).
+ *
+ * Deliberately excluded: the functions that guard with ossl_assert() rather
+ * than a graceful NULL check -- OSSL_FN_CTX_* and the Montgomery ops
+ * (OSSL_FN_mul_mont[_quick], OSSL_FN_to_mont, OSSL_FN_from_mont, and their
+ * _ctx_size helpers).  Those treat a NULL pointer as a programming error and
+ * abort in a debug build by design, so they are not NULL-tolerant.
+ */
+static int test_null_params(void)
+{
+    volatile size_t su = 0; /* sink for size_t / bit-count results */
+    volatile int si = 0; /* sink for int results */
+    const OSSL_FN *volatile sp; /* sink for pointer results */
+
+    /* fn_lib.c */
+    OSSL_FN_free(NULL);
+    OSSL_FN_clear_free(NULL);
+    OSSL_FN_clear(NULL);
+    si |= OSSL_FN_set_word(NULL, 0);
+    si |= OSSL_FN_one(NULL);
+    si |= OSSL_FN_zero(NULL);
+    su += OSSL_FN_num_bits(NULL);
+    si |= OSSL_FN_cmp(NULL, NULL);
+    si |= OSSL_FN_is_bit_set(NULL, 0);
+    si |= OSSL_FN_clear_bit(NULL, 0);
+    si |= OSSL_FN_is_word(NULL, 0);
+    si |= OSSL_FN_is_zero(NULL);
+    si |= OSSL_FN_is_one(NULL);
+    si |= OSSL_FN_is_odd(NULL);
+    sp = OSSL_FN_copy(NULL, NULL);
+    sp = OSSL_FN_copy_truncate(NULL, NULL);
+    si |= OSSL_FN_to_bytes_be(NULL, NULL, 0);
+    si |= OSSL_FN_from_bytes_be(NULL, NULL, 0);
+
+    /* fn_addsub.c */
+    si |= OSSL_FN_add(NULL, NULL, NULL);
+    si |= OSSL_FN_add_word(NULL, 0);
+    si |= OSSL_FN_sub(NULL, NULL, NULL);
+    si |= OSSL_FN_sub_word(NULL, 0);
+
+    /* fn_shift.c */
+    si |= OSSL_FN_lshift(NULL, NULL, 0);
+    si |= OSSL_FN_lshift1(NULL, NULL);
+    si |= OSSL_FN_rshift(NULL, NULL, 0);
+    si |= OSSL_FN_rshift1(NULL, NULL);
+
+    /* fn_mul.c / fn_sqr.c / fn_div.c */
+    si |= OSSL_FN_mul(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mul_ctx_size(NULL, NULL, NULL);
+    si |= OSSL_FN_sqr(NULL, NULL, NULL);
+    su += OSSL_FN_sqr_ctx_size(NULL, NULL);
+    si |= OSSL_FN_div(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_div_ctx_size(NULL, NULL, NULL, NULL);
+
+    /* fn_mod.c (plus the OSSL_FN_mod()/_ctx_size wrappers in fn.h) */
+    si |= OSSL_FN_mod(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_ctx_size(NULL, NULL, NULL);
+    si |= OSSL_FN_mod_add(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_add_ctx_size(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_add_quick(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_sub(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_sub_ctx_size(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_sub_quick(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_mul(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_mul_ctx_size(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_sqr(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_sqr_ctx_size(NULL, NULL, NULL);
+    si |= OSSL_FN_mod_lshift1(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_lshift1_ctx_size(NULL, NULL, NULL);
+    si |= OSSL_FN_mod_lshift1_quick(NULL, NULL, NULL);
+    si |= OSSL_FN_mod_lshift(NULL, NULL, 0, NULL, NULL);
+    su += OSSL_FN_mod_lshift_ctx_size(NULL, NULL, 0, NULL);
+    si |= OSSL_FN_mod_lshift_quick(NULL, NULL, 0, NULL);
+
+    /* fn_mod_inv.c */
+    si |= OSSL_FN_mod_inverse(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_inverse_ctx_size(NULL, NULL, NULL);
+
+    /* fn_exp.c */
+    si |= OSSL_FN_mod_exp_simple(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_exp_simple_ctx_size(NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_exp_mont(NULL, NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_exp_mont_ctx_size(NULL, NULL, NULL, NULL, NULL);
+    si |= OSSL_FN_mod_exp(NULL, NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_exp_ctx_size(NULL, NULL, NULL, NULL);
+
+    /* fn_sqrt.c */
+    si |= OSSL_FN_mod_sqrt(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_mod_sqrt_ctx_size(NULL, NULL, NULL);
+
+    /* fn_gcd.c */
+    si |= OSSL_FN_gcd(NULL, NULL, NULL, NULL);
+    su += OSSL_FN_gcd_ctx_size(NULL, NULL);
+
+    /* fn_kron.c */
+    si |= OSSL_FN_kronecker(NULL, NULL, NULL);
+    su += OSSL_FN_kronecker_ctx_size(NULL, NULL);
+
+    /* fn_rand.c */
+    si |= OSSL_FN_rand(NULL, 0, 0, 0, 0, NULL);
+    si |= OSSL_FN_priv_rand(NULL, 0, 0, 0, 0, NULL);
+    si |= OSSL_FN_rand_range(NULL, NULL, 0, NULL);
+    si |= OSSL_FN_priv_rand_range(NULL, NULL, 0, NULL);
+
+    /* The NULL rejections raise errors by design; don't leave them behind. */
+    ERR_clear_error();
+
+    /* Reaching here without crashing is the whole point of the test. */
+    (void)su;
+    (void)si;
+    (void)sp;
+    return 1;
+}
+
 int setup_tests(void)
 {
     ADD_ALL_TESTS(test_add, 17);
@@ -5699,6 +5818,7 @@ int setup_tests(void)
     ADD_ALL_TESTS(test_kronecker_legendre_wide, OSSL_NELEM(kronecker_wide_cases));
     ADD_ALL_TESTS(test_mod_sqrt, OSSL_NELEM(mod_sqrt_primes));
     ADD_TEST(test_mod_sqrt_result_truncation);
+    ADD_TEST(test_null_params);
 
     return 1;
 }
