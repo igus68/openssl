@@ -164,7 +164,7 @@ static int ossl_fn_rand_range(enum ossl_fn_rand_flag flag, OSSL_FN *r,
     size_t n;
     int count = 100;
 
-    if (r == NULL) {
+    if (r == NULL || range == NULL) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }

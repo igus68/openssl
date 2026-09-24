@@ -27,7 +27,8 @@ size_t OSSL_FN_mod_add_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 {
     size_t tl, own_size, nested_size;
 
-    if (r == NULL || a == NULL || b == NULL || m == NULL)
+    /* |r| is forwarded to OSSL_FN_mod_ctx_size(), which ignores it. */
+    if (a == NULL || b == NULL || m == NULL)
         return 0;
     int err = 0;
 
@@ -46,6 +47,11 @@ size_t OSSL_FN_mod_add_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_add(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     const OSSL_FN *m, OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || b == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *t;
     int ret = 0;
@@ -77,6 +83,11 @@ err:
 int OSSL_FN_mod_add_quick(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     const OSSL_FN *m)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || b == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     size_t al = a->dsize;
     size_t bl = b->dsize;
     size_t rl = r->dsize;
@@ -159,6 +170,11 @@ size_t OSSL_FN_mod_sub_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_sub(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     const OSSL_FN *m, OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || b == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *am, *bm, *rr = r;
     int ret = 0;
@@ -207,6 +223,11 @@ err:
 int OSSL_FN_mod_sub_quick(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     const OSSL_FN *m)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || b == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     if (r == m) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_INVALID_ARGUMENT);
         return 0;
@@ -268,7 +289,8 @@ size_t OSSL_FN_mod_mul_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 {
     size_t tl, own_size, mul_size, mod_size, nested_size;
 
-    if (r == NULL || a == NULL || b == NULL || m == NULL)
+    /* |r| is forwarded to OSSL_FN_mod_ctx_size(), which ignores it. */
+    if (a == NULL || b == NULL || m == NULL)
         return 0;
 
     if (a == b) {
@@ -302,6 +324,11 @@ size_t OSSL_FN_mod_mul_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_mul(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     const OSSL_FN *m, OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || b == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *t;
     int ret = 0;
@@ -335,7 +362,8 @@ size_t OSSL_FN_mod_sqr_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 {
     size_t tl, own_size, sqr_size, mod_size, nested_size;
 
-    if (r == NULL || a == NULL || m == NULL)
+    /* |r| is forwarded to OSSL_FN_mod_ctx_size(), which ignores it. */
+    if (a == NULL || m == NULL)
         return 0;
     int err = 0;
 
@@ -355,6 +383,11 @@ size_t OSSL_FN_mod_sqr_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_sqr(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *m,
     OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *t;
     int ret = 0;
@@ -395,6 +428,11 @@ size_t OSSL_FN_mod_lshift1_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_lshift1(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *m,
     OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *t;
     int ret = 0;
@@ -415,6 +453,11 @@ err:
 /* OSSL_FN_mod_lshift1 variant that may be used if a is less than m */
 int OSSL_FN_mod_lshift1_quick(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *m)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     OSSL_FN *t = OSSL_FN_new_limbs((size_t)(m->dsize + 1));
     int ret = 0;
 
@@ -438,7 +481,8 @@ size_t OSSL_FN_mod_lshift_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 {
     size_t ml, own_size, nested_size;
 
-    if (r == NULL || a == NULL || m == NULL)
+    /* |r| is forwarded to OSSL_FN_mod_ctx_size(), which ignores it. */
+    if (a == NULL || m == NULL)
         return 0;
     (void)n;
 
@@ -456,6 +500,11 @@ size_t OSSL_FN_mod_lshift_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_lshift(OSSL_FN *r, const OSSL_FN *a, int n, const OSSL_FN *m,
     OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     OSSL_FN *ra;
     int ret = 0;
@@ -479,6 +528,11 @@ int OSSL_FN_mod_lshift_quick(OSSL_FN *r, const OSSL_FN *a, int n,
 {
     OSSL_FN *t = NULL;
     int ret = 0;
+
+    if (ossl_unlikely(r == NULL || a == NULL || m == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
 
     if (n <= 0)
         return n == 0 ? (OSSL_FN_copy_truncate(r, a) != NULL) : 0;

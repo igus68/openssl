@@ -45,7 +45,8 @@
 size_t OSSL_FN_mod_inverse_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
     const OSSL_FN *n)
 {
-    if (r == NULL || a == NULL || n == NULL)
+    /* |r| is forwarded to OSSL_FN_mod_ctx_size(), which ignores it. */
+    if (a == NULL || n == NULL)
         return 0;
 
     size_t al = (size_t)a->dsize;
@@ -106,6 +107,11 @@ size_t OSSL_FN_mod_inverse_ctx_size(const OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mod_inverse(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *n,
     OSSL_FN_CTX *ctx)
 {
+    if (ossl_unlikely(r == NULL || a == NULL || n == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return 0;
+    }
+
     const void *token = OSSL_FN_CTX_start(ctx);
     int ret = 0;
 
