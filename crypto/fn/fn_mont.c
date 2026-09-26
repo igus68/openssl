@@ -54,8 +54,11 @@ OSSL_FN_MONT_CTX *OSSL_FN_MONT_CTX_new(const OSSL_FN *mod)
     size_t i, j;
     int err = 0;
 
-    if (mod == NULL || mod->dsize <= 0
-        || (mod->d[0] & OSSL_FN_ULONG_C(1)) == 0) {
+    if (mod == NULL) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return NULL;
+    }
+    if (mod->dsize <= 0 || (mod->d[0] & OSSL_FN_ULONG_C(1)) == 0) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_INVALID_ARGUMENT);
         return NULL;
     }
@@ -172,6 +175,12 @@ OSSL_FN_MONT_CTX *OSSL_FN_MONT_CTX_set_locked(OSSL_FN_MONT_CTX **pmont,
 {
     OSSL_FN_MONT_CTX *ret = NULL, *newctx = NULL;
     int lock_failed = 0;
+
+    if (pmont == NULL) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
+        return NULL;
+    }
+    /* mod == NULL is diagnosed by OSSL_FN_MONT_CTX_new() below. */
 
     if (!CRYPTO_atomic_load_ptr((void **)pmont, (void **)&ret, lock))
         return NULL;
@@ -296,9 +305,7 @@ size_t OSSL_FN_mul_mont_quick_ctx_size(OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_mul_mont_quick(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     OSSL_FN_MONT_CTX *mont, OSSL_FN_CTX *ctx)
 {
-    if (!ossl_assert(r != NULL) || !ossl_assert(a != NULL)
-        || !ossl_assert(b != NULL) || !ossl_assert(mont != NULL)
-        || !ossl_assert(ctx != NULL)) {
+    if (r == NULL || a == NULL || b == NULL || mont == NULL || ctx == NULL) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -434,9 +441,7 @@ size_t OSSL_FN_mul_mont_ctx_size(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
 int OSSL_FN_mul_mont(OSSL_FN *r, const OSSL_FN *a, const OSSL_FN *b,
     OSSL_FN_MONT_CTX *mont, OSSL_FN_CTX *ctx)
 {
-    if (!ossl_assert(r != NULL) || !ossl_assert(a != NULL)
-        || !ossl_assert(b != NULL) || !ossl_assert(mont != NULL)
-        || !ossl_assert(ctx != NULL)) {
+    if (r == NULL || a == NULL || b == NULL || mont == NULL || ctx == NULL) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -541,7 +546,7 @@ size_t OSSL_FN_to_mont_ctx_size(OSSL_FN *r, const OSSL_FN *a,
 int OSSL_FN_to_mont(OSSL_FN *r, const OSSL_FN *a,
     OSSL_FN_MONT_CTX *mont, OSSL_FN_CTX *ctx)
 {
-    if (!ossl_assert(mont != NULL) || !ossl_assert(r != NULL)) {
+    if (mont == NULL || r == NULL) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }
@@ -598,8 +603,7 @@ int OSSL_FN_from_mont(OSSL_FN *r, const OSSL_FN *a,
     OSSL_FN_ULONG m, carry = 0;
     int i, j, ret = 0;
 
-    if (!ossl_assert(r != NULL) || !ossl_assert(a != NULL)
-        || !ossl_assert(mont != NULL) || !ossl_assert(ctx != NULL)) {
+    if (r == NULL || a == NULL || mont == NULL || ctx == NULL) {
         ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
     }

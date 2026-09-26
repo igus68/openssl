@@ -437,8 +437,10 @@ int OSSL_FN_to_bytes_be(const OSSL_FN *a, unsigned char *out, size_t len)
     size_t dsize, nbytes, i;
     unsigned char over = 0;
 
-    if (ossl_unlikely(a == NULL || out == NULL))
+    if (ossl_unlikely(a == NULL || out == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
+    }
 
     dsize = ossl_fn_get_dsize(a);
     nbytes = dsize * OSSL_FN_BYTES;
@@ -474,8 +476,10 @@ int OSSL_FN_from_bytes_be(OSSL_FN *r, const unsigned char *in, size_t len)
     size_t rbytes, i;
     unsigned char over = 0;
 
-    if (ossl_unlikely(r == NULL || in == NULL))
+    if (ossl_unlikely(r == NULL || in == NULL)) {
+        ERR_raise(ERR_LIB_OSSL_FN, ERR_R_PASSED_NULL_PARAMETER);
         return 0;
+    }
 
     rbytes = ossl_fn_get_dsize(r) * OSSL_FN_BYTES;
 
